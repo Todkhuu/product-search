@@ -1,10 +1,17 @@
 "use client";
 import Image from "next/image";
-import { Pencil, Trash2, Package } from "lucide-react";
+import { Pencil, Trash2, Package, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Product } from "@/lib/types";
-import { Dialog, DialogTrigger } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+} from "./ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { ProductForm } from "./product-form";
 import { useState } from "react";
 
@@ -15,11 +22,15 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onDelete }: ProductCardProps) {
   const [open, setOpen] = useState(false);
+  const [isImageOpen, setIsImageOpen] = useState(false);
   const lastFourDigits = String(product.barcode).slice(-4);
 
   return (
     <Card className="flex flex-row items-center gap-4 p-4">
-      <div className="relative size-16 shrink-0 rounded-lg overflow-hidden bg-muted">
+      <div
+        className="relative size-16 shrink-0 rounded-lg overflow-hidden bg-muted cursor-zoom-in active:scale-95 transition-transform"
+        onClick={() => product.image && setIsImageOpen(true)}
+      >
         {product.image ? (
           <Image
             src={product.image}
@@ -76,6 +87,27 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
           <Trash2 className="size-4" />
         </Button>
       </div>
+      <Dialog open={isImageOpen} onOpenChange={setIsImageOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-none bg-transparent shadow-none flex items-center justify-center">
+          {/* Accessibility-д зориулсан нуугдмал гарчиг */}
+          <VisuallyHidden>
+            <DialogTitle>{product.productName} зураг</DialogTitle>
+            <DialogDescription>
+              Барааны зургийг томоор харуулж байна
+            </DialogDescription>
+          </VisuallyHidden>
+
+          <div className="relative w-full h-full flex items-center justify-center">
+            {product.image && (
+              <img
+                src={product.image}
+                alt={product.productName}
+                className="max-w-full max-h-[90vh] rounded-lg object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
