@@ -100,7 +100,6 @@ export default function InventoryPage() {
             <Plus className="size-6" />
           </Button>
         </DialogTrigger>
-        {/* product prop дамжуулахгүй = add mode */}
         <ProductForm onSuccess={() => setIsAddOpen(false)} />
       </Dialog>
 

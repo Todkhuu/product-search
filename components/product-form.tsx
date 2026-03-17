@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useProduct } from "@/app/_context/ProductContext";
+import { Loader2 } from "lucide-react";
 
 interface ProductFormProps {
   product?: Product; // optional болгох
@@ -46,6 +47,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const [file, setFile] = useState<File>();
   const { categories } = useCategory();
   const { fetchData } = useProduct();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,36 +72,46 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     id: string,
     values: z.infer<typeof formSchema>,
   ) => {
-    let imageUrl = values.image;
-    if (file) {
-      if (product?.image) {
-        const oldPublicId = getPublicIdFromUrl(product.image);
-        if (oldPublicId)
-          await axios.post("/api/upload", { publicId: oldPublicId });
+    setIsLoading(true);
+    try {
+      let imageUrl = values.image;
+      if (file) {
+        if (product?.image) {
+          const oldPublicId = getPublicIdFromUrl(product.image);
+          if (oldPublicId)
+            await axios.post("/api/upload", { publicId: oldPublicId });
+        }
+        imageUrl = await handleUpload();
       }
-      imageUrl = await handleUpload();
+      await axios.patch(`/api/product/productId`, {
+        id,
+        ...values,
+        category: values.categories,
+        image: imageUrl,
+      });
+      await fetchData();
+      onSuccess?.();
+    } finally {
+      setIsLoading(false);
     }
-    await axios.patch(`/api/product/productId`, {
-      id,
-      ...values,
-      category: values.categories,
-      image: imageUrl,
-    });
-    await fetchData();
-    onSuccess?.();
   };
 
   const addProduct = async (values: z.infer<typeof formSchema>) => {
-    let imageUrl = values.image;
-    if (file) imageUrl = await handleUpload();
+    setIsLoading(true);
+    try {
+      let imageUrl = values.image;
+      if (file) imageUrl = await handleUpload();
 
-    await axios.post(`/api/product`, {
-      ...values,
-      category: values.categories,
-      image: imageUrl,
-    });
-    await fetchData();
-    onSuccess?.();
+      await axios.post(`/api/product`, {
+        ...values,
+        category: values.categories,
+        image: imageUrl,
+      });
+      await fetchData();
+      onSuccess?.();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFile = (file: File) => {
@@ -273,9 +285,16 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
             <Button
               type="submit"
+              disabled={isLoading}
               className="w-full sm:w-32 bg-blue-600 hover:bg-blue-700"
             >
-              {isEditing ? "Шинэчлэх" : "Нэмэх"}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isEditing ? (
+                "Шинэчлэх"
+              ) : (
+                "Нэмэх"
+              )}
             </Button>
           </div>
         </form>
