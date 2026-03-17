@@ -1,5 +1,5 @@
 "use client";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,12 +25,13 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ProductForm } from "@/components/product-form";
 
 export default function InventoryPage() {
-  const { isLoading, products } = useProduct();
+  const { isLoading, products, setProducts } = useProduct();
   const [search, setSearch] = useState("");
   const [deletingProductId, setDeletingProductId] = useState<string | null>(
     null,
   );
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredProducts = products?.filter((product) => {
     const productName = product.productName.toLowerCase();
@@ -67,13 +68,25 @@ export default function InventoryPage() {
 
   const handleDelete = async () => {
     if (!deletingProductId) return;
+
+    setIsDeleting(true);
     try {
       await axios.delete(`/api/product/productId`, {
         data: { deletingProductId },
       });
+
+      // UI-аас устгагдсан барааг хасах (Шууд шинэчлэгдэх хэсэг)
+      const updatedProducts = products.filter(
+        (p) => p._id !== deletingProductId,
+      );
+      setProducts(updatedProducts);
+
       setDeletingProductId(null);
     } catch (error) {
       console.error("Error deleting product:", error);
+      alert("Устгахад алдаа гарлаа.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -112,13 +125,29 @@ export default function InventoryPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Бараа устгах уу?</AlertDialogTitle>
             <AlertDialogDescription>
-              Энэ үйлдлийг буцаах боломжгүй. Та энэ барааг устгахдаа итгэлтэй
-              байна уу?
+              {isDeleting
+                ? "Түр хүлээнэ үү, барааг устгаж байна..."
+                : "Энэ үйлдлийг буцаах боломжгүй. Та энэ барааг устгахдаа итгэлтэй байна уу?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Болих</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Устгах</AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Болих</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault(); // Автоматаар хаагдахаас сэргийлнэ
+                handleDelete();
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Устгаж байна...
+                </>
+              ) : (
+                "Устгах"
+              )}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

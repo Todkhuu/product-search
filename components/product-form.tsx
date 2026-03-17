@@ -29,17 +29,30 @@ import { useProduct } from "@/app/_context/ProductContext";
 import { Loader2 } from "lucide-react";
 
 interface ProductFormProps {
-  product?: Product; // optional болгох
-  onSuccess?: () => void; // dialog хаах callback
+  product?: Product;
+  onSuccess?: () => void;
 }
 
 const formSchema = z.object({
-  productName: z.string().min(4).max(50),
-  categories: z.string(),
-  price: z.string(),
-  image: z.string(),
-  barcode: z.string(),
-  unit: z.string(),
+  productName: z
+    .string()
+    .min(4, { message: "Нэр хамгийн багадаа 4 тэмдэгт байх ёстой" })
+    .max(150, { message: "Нэр хамгийн ихдээ 150 тэмдэгт байх ёстой" }),
+  categories: z.string().min(1, { message: "Төрөл сонгоно уу" }),
+  price: z
+    .string()
+    .min(1, { message: "Үнэ оруулна уу" })
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Үнэ зөв тоо байх ёстой",
+    }),
+  image: z.string().min(1, { message: "Зураг оруулна уу" }),
+  barcode: z
+    .string()
+    .min(1, { message: "Баркод оруулна уу" })
+    .refine((val) => /^\d+$/.test(val), {
+      message: "Баркод зөвхөн тоо байх ёстой",
+    }),
+  unit: z.string().optional(),
 });
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
@@ -116,6 +129,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
 
   const handleFile = (file: File) => {
     setFile(file);
+    form.setValue("image", file.name, { shouldValidate: true });
   };
 
   const handleUpload = async () => {
