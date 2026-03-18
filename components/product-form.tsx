@@ -61,6 +61,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { categories } = useCategory();
   const { fetchData } = useProduct();
   const [isLoading, setIsLoading] = useState(false);
+  const { products } = useProduct();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -110,6 +111,13 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   };
 
   const addProduct = async (values: z.infer<typeof formSchema>) => {
+    const isBarcodeExists = products.some((p) => p.barcode === values.barcode);
+
+    if (isBarcodeExists) {
+      form.setError("barcode", { message: "Энэ баркод жагсаалтад байна." });
+      form.setFocus("barcode");
+      return;
+    }
     setIsLoading(true);
     try {
       let imageUrl = values.image;

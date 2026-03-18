@@ -11,7 +11,7 @@ const ProductSchema = new Schema<ProductModelType>(
       ref: "ProductCategories",
       required: true,
     },
-    barcode: { type: String, required: true },
+    barcode: { type: String, unique: true, required: true },
     unit: { type: String, required: false },
   },
   { timestamps: true },
