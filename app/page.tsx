@@ -66,16 +66,31 @@ export default function InventoryPage() {
     return matchSearch;
   });
 
+  const getPublicIdFromUrl = (url: string) => {
+    if (!url) return null;
+    const parts = url.split("/");
+    const lastPart = parts[parts.length - 1];
+    return lastPart.split(".")[0];
+  };
+
   const handleDelete = async () => {
     if (!deletingProductId) return;
 
     setIsDeleting(true);
     try {
+      const productToDelete = products.find((p) => p._id === deletingProductId);
+
+      if (productToDelete?.image) {
+        const publicId = getPublicIdFromUrl(productToDelete.image);
+        if (publicId) {
+          await axios.post("/api/upload", { publicId });
+        }
+      }
+
       await axios.delete(`/api/product/productId`, {
         data: { deletingProductId },
       });
 
-      // UI-аас устгагдсан барааг хасах (Шууд шинэчлэгдэх хэсэг)
       const updatedProducts = products.filter(
         (p) => p._id !== deletingProductId,
       );
