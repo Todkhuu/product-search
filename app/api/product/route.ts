@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const productCategoryId = searchParams.get("productCategoryId");
     const offset = Number(searchParams.get("offset") || 0);
-    const limit = Number(searchParams.get("limit") || 20);
+    // const limit = Number(searchParams.get("limit") || 20);
 
     const filter = productCategoryId
       ? { category: productCategoryId as unknown as ProductCategoryModelType }
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     const products = await ProductModel.find(filter)
       .sort({ createdAt: -1 })
-      .limit(limit)
+      // .limit(limit)
       .skip(offset)
       .populate("category");
 
