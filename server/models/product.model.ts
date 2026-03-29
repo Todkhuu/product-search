@@ -3,16 +3,17 @@ import { Model, Schema, model, models } from "mongoose";
 
 const ProductSchema = new Schema<ProductModelType>(
   {
-    productName: { type: String, required: true },
-    price: { type: String, required: true },
+    productName: { type: String, required: false, default: "" },
+    price: { type: String, required: false, default: "" },
     image: { type: String, required: true },
     category: {
       type: Schema.Types.ObjectId,
       ref: "ProductCategories",
-      required: true,
+      required: false,
+      set: (v: string) => (v === "" ? null : v),
     },
     barcode: { type: String, unique: true, required: true },
-    unit: { type: String, required: false },
+    unit: { type: String, required: false, default: "" },
   },
   { timestamps: true },
 );

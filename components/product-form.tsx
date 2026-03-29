@@ -33,26 +33,67 @@ interface ProductFormProps {
   onSuccess?: () => void;
 }
 
+// const formSchema = z.object({
+//   productName: z
+//     .string()
+//     .min(4, { message: "Нэр хамгийн багадаа 4 тэмдэгт байх ёстой" })
+//     .max(150, { message: "Нэр хамгийн ихдээ 150 тэмдэгт байх ёстой" }),
+//   categories: z.string().min(1, { message: "Төрөл сонгоно уу" }),
+//   price: z
+//     .string()
+//     .min(1, { message: "Үнэ оруулна уу" })
+//     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+//       message: "Үнэ зөв тоо байх ёстой",
+//     }),
+//   image: z.string().min(1, { message: "Зураг оруулна уу" }),
+//   barcode: z
+//     .string()
+//     .min(1, { message: "Баркод оруулна уу" })
+//     .refine((val) => /^\d+$/.test(val), {
+//       message: "Баркод зөвхөн тоо байх ёстой",
+//     }),
+//   unit: z.string().optional(),
+// });
+
 const formSchema = z.object({
+  // productName-г хоосон байж болохоор болгов
   productName: z
     .string()
-    .min(4, { message: "Нэр хамгийн багадаа 4 тэмдэгт байх ёстой" })
-    .max(150, { message: "Нэр хамгийн ихдээ 150 тэмдэгт байх ёстой" }),
-  categories: z.string().min(1, { message: "Төрөл сонгоно уу" }),
+    .max(150, { message: "Нэр хамгийн ихдээ 150 тэмдэгт байх ёстой" })
+    .optional()
+    .or(z.literal("")),
+
+  // categories-г хоосон байж болохоор болгов
+  categories: z.string().optional().or(z.literal("")),
+
+  // price-г хоосон байж болох бөгөөд хэрэв утга оруулвал тоо байх ёстой
   price: z
     .string()
-    .min(1, { message: "Үнэ оруулна уу" })
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Үнэ зөв тоо байх ёстой",
-    }),
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => {
+        if (!val || val === "") return true; // Хоосон бол алдаа заахгүй
+        return !isNaN(Number(val)) && Number(val) > 0;
+      },
+      {
+        message: "Үнэ зөв тоо байх ёстой",
+      },
+    ),
+
+  // IMAGE - Заавал оруулах ёстой
   image: z.string().min(1, { message: "Зураг оруулна уу" }),
+
+  // BARCODE - Заавал оруулах ёстой
   barcode: z
     .string()
     .min(1, { message: "Баркод оруулна уу" })
     .refine((val) => /^\d+$/.test(val), {
       message: "Баркод зөвхөн тоо байх ёстой",
     }),
-  unit: z.string().optional(),
+
+  // unit - Хэвээрээ (заавал биш)
+  unit: z.string().optional().or(z.literal("")),
 });
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
